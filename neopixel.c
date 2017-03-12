@@ -53,6 +53,7 @@
 #include "nrf_gpio.h"
 #include "neopixel.h"
 
+
 void neopixel_init(neopixel_strip_t *strip, uint8_t pin_num, uint16_t num_leds)
 {
 	strip->leds = (color_t*) malloc(sizeof(color_t) * num_leds);

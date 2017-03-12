@@ -21,27 +21,7 @@
  * This application uses the @ref srvlib_conn_params module.
  */
 
-#include <stdint.h>
-#include <string.h>
-#include "nordic_common.h"
-#include "nrf.h"
-#include "nrf51_bitfields.h"
-#include "ble_hci.h"
-#include "ble_advdata.h"
-#include "ble_advertising.h"
-#include "ble_conn_params.h"
-#include "softdevice_handler.h"
-#include "app_util.h"
-#include "app_error.h"
-#include "app_timer.h"
-#include "app_button.h"
-#include "ble_nus.h"
-#include "app_uart.h"
-#include "app_util_platform.h"
-#include "bsp.h"
-#include "bsp_btn_ble.h"
-
-#include "app_trace.h"
+#include "nrf_global.h"
 
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
@@ -141,6 +121,7 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
         while(app_uart_put(p_data[i]) != NRF_SUCCESS);
     }
     while(app_uart_put('\n') != NRF_SUCCESS);
+    while(app_uart_put('\r') != NRF_SUCCESS);   
 }
 /**@snippet [Handling the data received over BLE] */
 
@@ -399,11 +380,14 @@ void uart_event_handle(app_uart_evt_t * p_event)
 
     switch (p_event->evt_type)
     {
-        case APP_UART_DATA_READY:
+        case APP_UART_DATA_READY: //get from UART wire
             UNUSED_VARIABLE(app_uart_get(&data_array[index]));
             index++;
 
-            if ((data_array[index - 1] == '\n') || (index >= (BLE_NUS_MAX_DATA_LEN)))
+            if (
+                ((data_array[index - 1] == 'e')&&(data_array[index - 2] == ','))
+                || (index >= (BLE_NUS_MAX_DATA_LEN))
+               )
             {
                 err_code = ble_nus_string_send(&m_nus, data_array, index);
                 if (err_code != NRF_ERROR_INVALID_STATE)
@@ -542,6 +526,9 @@ int main(void)
     for (;;)
     {
         power_manage();
+        nrf_delay_ms(1000);
+        app_uart_put('s');
+        
     }
 }
 
